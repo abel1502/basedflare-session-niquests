@@ -9,10 +9,14 @@ from .exceptions import ChallengeRequestError
 
 class BasedSession(requests.Session):
     """A session that can solve BasedFlare challenges automatically."""
+    
+    __eager: bool
+    solvers: typing.Dict[str, typing.Callable[[str, str, int, int, int], int]]
 
     @functools.wraps(requests.Session.__init__)
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, eager: bool = False, **kwargs):
         super().__init__(*args, **kwargs)
+        self.__eager = eager
         self.solvers = {
             "argon2": solve_argon2,
             # sha256 does not require the same parameters as argon2 (time_cost, memory_cost)
@@ -28,10 +32,12 @@ class BasedSession(requests.Session):
         domain = parsed_url.netloc
         path = parsed_url.path
         
-        # Solve the challenge if the session does not have the necessary cookie
-        if not self.cookies.get(
-            "_basedflare_pow", domain=f".{domain}"
-        ) and path != "/.basedflare/bot-check":
+        # Solve the challenge eagerly if the session does not have the necessary cookie
+        if (
+            self.__eager and
+            not self.cookies.get("_basedflare_pow", domain=f".{domain}") and
+            path != "/.basedflare/bot-check"
+        ):
             self.__solve_challenge(domain)
 
         res = super().request(method, url, *args, **kwargs)
@@ -48,6 +54,8 @@ class BasedSession(requests.Session):
 
     def __solve_challenge(self, domain: str):
         challenge = self.__get_challenge(domain)
+        if challenge is None:
+            return
         if challenge["ca"]:
             raise NotImplementedError("CAPTCHA challenges are not supported")
 
@@ -60,11 +68,13 @@ class BasedSession(requests.Session):
         )
         self.__post_challenge(domain, f"{challenge['ch']}#{solution}")
 
-    def __get_challenge(self, domain: str) -> typing.Dict[str, typing.Any]:
+    def __get_challenge(self, domain: str) -> typing.Optional[typing.Dict[str, typing.Any]]:
         res = self.get(
             f"https://{domain}/.basedflare/bot-check",
             headers={"Accept": "application/json"},
         )
+        if res.status_code == requests.codes.not_found:
+            return None
         if res.status_code != requests.codes.forbidden:
             raise ChallengeRequestError(
                 f"Unexpected status code {res.status_code} when fetching the challenge"
