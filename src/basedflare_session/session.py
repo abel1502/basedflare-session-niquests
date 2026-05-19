@@ -1,10 +1,10 @@
 from urllib.parse import urlparse
-import requests
+import niquests
 from .utils import solve_argon2, solve_sha256
 from .exceptions import ChallengeRequestError
 
 
-class BasedSession(requests.Session):
+class BasedSession(niquests.Session):
     """A session that can solve BasedFlare challenges automatically."""
 
     def __init__(self):
@@ -54,7 +54,7 @@ class BasedSession(requests.Session):
             f"https://{domain}/.basedflare/bot-check",
             headers={"Accept": "application/json"},
         )
-        if res.status_code != requests.codes.forbidden:
+        if res.status_code != niquests.codes.forbidden:
             raise ChallengeRequestError(
                 f"Unexpected status code {res.status_code} when fetching the challenge"
             )
@@ -67,7 +67,7 @@ class BasedSession(requests.Session):
             data={"pow_response": pow_response},
             headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
-        if res.status_code != requests.codes.found:
+        if res.status_code != niquests.codes.found:
             raise ChallengeRequestError(
                 f"Unexpected status code {res.status_code} when posting the challenge solution"
             )
