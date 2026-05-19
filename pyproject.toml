@@ -3,20 +3,21 @@ requires = ["setuptools>=69.2.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "basedflare-session"
+name = "basedflare-session-niquests"
 version = "0.1.1"
 dependencies = [
-    "requests>=2.31.0",
+    "niquests>=2.32.0",
     "argon2-cffi>=23.1.0",
 ]
 requires-python = ">=3.8"
 authors = [
     { name = "loynet", email = "loynet@protonmail.com" },
+    { name = "abel1502" },
 ]
-description = "Provides a requests-flavored session to solve BasedFlare challenges automatically. It also includes utility functions to solve the challenges manually."
+description = "Provides a niquests-flavored session to solve BasedFlare challenges automatically. It also includes utility functions to solve the challenges manually."
 readme = "README.md"
 license = { file = "LICENSE" }
-keywords = ["basedflare", "session"]
+keywords = ["basedflare", "session", "niquests"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",
@@ -24,6 +25,6 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/loynet/basedflare-session"
-Issues = "https://github.com/loynet/basedflare-session/issues"
-Repository = "https://github.com/loynet/basedflare-session.git"
+Homepage = "https://github.com/abel1502/basedflare-session-niquests"
+Issues = "https://github.com/abel1502/basedflare-session-niquests/issues"
+Repository = "https://github.com/abel1502/basedflare-session-niquests.git"

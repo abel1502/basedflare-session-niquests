@@ -1,6 +1,8 @@
-# basedflare-session
+# basedflare-session-niquests
 
-A package that extends [Python's requests session](https://docs.python-requests.org/en/latest/_modules/requests/sessions/) to solve some [BasedFlare](https://basedflare.com/) Proof of Work (PoW) challenges automatically.
+*Fork description*: This is a port of [basedflare-session](https://github.com/loynet/basedflare-session/) to [niquests](https://github.com/jawah/niquests). Big thanks to @loynet and @jawah for their work! I intend to maintain this fork up to date with the original package, as well as introduce improvements where applicable.
+
+A package that extends [Python's niquests session](https://docs.python-requests.org/en/latest/_modules/requests/sessions/) to solve some [BasedFlare](https://basedflare.com/) Proof of Work (PoW) challenges automatically.
 It also includes utility functions to solve the challenges manually.
 
 Please note that **this package is a work in progress** and may not function in all cases.
