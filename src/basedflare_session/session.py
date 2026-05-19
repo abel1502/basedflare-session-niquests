@@ -1,4 +1,8 @@
+from __future__ import annotations
+import typing
+import functools
 from urllib.parse import urlparse
+
 import niquests
 from .utils import solve_argon2, solve_sha256
 from .exceptions import ChallengeRequestError
@@ -7,8 +11,9 @@ from .exceptions import ChallengeRequestError
 class BasedSession(niquests.Session):
     """A session that can solve BasedFlare challenges automatically."""
 
-    def __init__(self):
-        super().__init__()
+    @functools.wraps(niquests.Session.__init__)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.solvers = {
             "argon2": solve_argon2,
             # sha256 does not require the same parameters as argon2 (time_cost, memory_cost)
@@ -18,7 +23,8 @@ class BasedSession(niquests.Session):
             ),
         }
 
-    def request(self, method, url, **kwargs):
+    @functools.wraps(niquests.Session.request)
+    def request(self, method: str, url: str, *args, **kwargs) -> niquests.Response:
         domain = urlparse(url).netloc
         # Solve the challenge if the session does not have the necessary cookie
         if not self.cookies.get(
@@ -26,7 +32,7 @@ class BasedSession(niquests.Session):
         ) and not url.endswith(".basedflare/bot-check"):
             self.__solve_challenge(domain)
 
-        res = super().request(method, url, **kwargs)
+        res = super().request(method, url, *args, **kwargs)
 
         # Fallback to solving the challenge if the response is a redirect, e.g. the cookie is invalid
         if ".basedflare/bot-check?/" in res.url:
@@ -35,7 +41,7 @@ class BasedSession(niquests.Session):
 
         return res
 
-    def __solve_challenge(self, domain):
+    def __solve_challenge(self, domain: str):
         challenge = self.__get_challenge(domain)
         if challenge["ca"]:
             raise NotImplementedError("CAPTCHA challenges are not supported")
@@ -49,7 +55,7 @@ class BasedSession(niquests.Session):
         )
         self.__post_challenge(domain, f"{challenge['ch']}#{solution}")
 
-    def __get_challenge(self, domain):
+    def __get_challenge(self, domain: str) -> typing.Dict[str, typing.Any]:
         res = self.get(
             f"https://{domain}/.basedflare/bot-check",
             headers={"Accept": "application/json"},
@@ -61,7 +67,7 @@ class BasedSession(niquests.Session):
 
         return res.json()
 
-    def __post_challenge(self, domain, pow_response):
+    def __post_challenge(self, domain: str, pow_response: str):
         res = self.post(
             f"https://{domain}/.basedflare/bot-check",
             data={"pow_response": pow_response},
@@ -75,3 +81,4 @@ class BasedSession(niquests.Session):
             raise ChallengeRequestError(
                 "The server did not send the bypass cookie after solving the challenge"
             )
+
